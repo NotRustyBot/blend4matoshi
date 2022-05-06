@@ -1,0 +1,4 @@
+__pycache__/
+workdir/*
+settings.json
+auth.json

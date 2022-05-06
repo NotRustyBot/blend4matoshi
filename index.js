@@ -3,7 +3,7 @@ const axios = require("axios").default;
 const upload = require("express-fileupload");
 const fs = require("fs");
 const archiver = require("archiver");
-const { spawn } = require("child_process");
+const { spawn, exec } = require("child_process");
 
 let settings = JSON.parse(fs.readFileSync("settings.json"));
 let auth = JSON.parse(fs.readFileSync("auth.json"));
@@ -12,6 +12,9 @@ let userId = settings.userId;
 let msPerMatoshi = settings.msPerMatoshi;
 let blenderLocation = settings.blenderLocation;
 let pythonLocation = settings.pythonLocation;
+
+let onRenderStart = settings.onRenderStart || "";
+let onRenderFinish = settings.onRenderFinish || "";
 
 let jobStatus = "Readying...";
 let cost = 0;
@@ -62,6 +65,11 @@ app.post("/", (req, res) => {
         originalName = file.name;
         fs.rmSync("workdir", { recursive: true, force: true });
         fs.mkdirSync("workdir");
+        if (onRenderStart != "") {
+            exec(onRenderStart);
+            console.log("onRenderStart:");
+            console.log(onRenderStart);
+        }
         file.mv("workdir/file.blend", (err) => {
             let getInfo = spawn(pythonLocation, ["get_frames.py"]);
             let startframe = 0;
@@ -138,6 +146,11 @@ app.post("/", (req, res) => {
                             fs.unlink(name);
                         });
                         archive.finalize();
+                    }
+                    if (onRenderFinish != "") {
+                        exec(onRenderFinish);
+                        console.log("onRenderFinish:");
+                        console.log(onRenderFinish);
                     }
                 });
             });

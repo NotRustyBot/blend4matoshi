@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="">
+    <meta name="twitter:title" content="Will Blend for Matoshi">
+    <meta name="twitter:description" content="Need to render a blend? Got some matoshi?">
+
+    <meta property="og:title" content="">
+    <meta property="og:site_name" content="Will Blend for Matoshi">
+    <meta property="og:url" content="">
+    <meta property="og:description" content="Need to render a blend? Got some matoshi?">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="">
+
+    <link rel="stylesheet" href="style.css">
+    <title>b4m manager</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>will <span class="blend">blend</span> for <span class="matoshi">matoshi</span></h1>
+        <% if(status==0){%>
+            <p>Need to render a <span class="blend">blend</span>?<br>Got some <span
+                    class="matoshi">Matoshi</span>?<br>Upload your file here, and start the job.</p>
+            <form action="/" method="post" enctype="multipart/form-data">
+                <div class="file-area">
+                    <p class="file-info">Drag and Drop <br> or <br>Click to select a file</p><input id="file"
+                        type="file" name="file" onforminput="">
+                </div>
+                <div class="bar">
+                    <div class="upload-fill"></div>
+                </div>
+                <input type="submit" id="start-upload" value="Start job">
+            </form>
+            <% }else if (status==1){ %>
+                <p>Your <span class="blend">blend</span> is being rendered. Watch the progress in the console below.
+                    <br> You can also see how many <span class="matoshi">Matoshi</span> you will need to pay.
+                </p>
+                <div class="console"></div>
+                <% }else if (status==2 ||status==3){%>
+                    <p>Your <span class="blend">blend</span> is rendered. Download your files before starting a new
+                        blend job! The original file is also found here, called file.blend</p>
+                    <div class="links">
+                        <% for (const link of links) {%>
+                            <%- "<a class=\" result\" href=\"" + link + "\">"+link.split("/")[2]+"</a>"%>
+                                <%}%>
+                    </div>
+                    <p>This job costs <span class="matoshi">
+                            <%= cost %> Matoshi.
+                        </span></p>
+                    <a class="button" href="/reset">New job</a>
+                    <% }else {} %>
+    </div>
+    <footer>b4m v1.4</footer>
+</body>
+<script src="script.js"></script>
+
+</html>

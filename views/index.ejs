@@ -19,7 +19,7 @@
     <meta property="og:image" content="">
 
     <link rel="stylesheet" href="style.css">
-    <title>b4m manager</title>
+    <title>b4m</title>
 </head>
 
 <body>
@@ -28,6 +28,7 @@
         <% if(status==0){%>
             <p>Need to render a <span class="blend">blend</span>?<br>Got some <span
                     class="matoshi">Matoshi</span>?<br>Upload your file here, and start the job.</p>
+                    <p>This b4m is running <span class="blend"><%= blenderInfo %></span> and will charge you <span class="matoshi"><%= rate %> matoshi</span> per second.</p>
             <form action="/" method="post" enctype="multipart/form-data">
                 <div class="file-area">
                     <p class="file-info">Drag and Drop <br> or <br>Click to select a file</p><input id="file"
@@ -45,7 +46,7 @@
                 <div class="console"></div>
                 <% }else if (status==2 ||status==3){%>
                     <p>Your <span class="blend">blend</span> is rendered. Download your files before starting a new
-                        blend job! The original file is also found here, called file.blend</p>
+                        blend job, or ask Jacek Kocek for the link to the cloud storage.</p>
                     <div class="links">
                         <% for (const link of links) {%>
                             <%- "<a class=\" result\" href=\"" + link + "\">"+link.split("/")[2]+"</a>"%>

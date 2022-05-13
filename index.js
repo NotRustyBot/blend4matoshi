@@ -3,7 +3,7 @@ const axios = require("axios").default;
 const upload = require("express-fileupload");
 const fs = require("fs");
 const archiver = require("archiver");
-const { spawn, exec } = require("child_process");
+const { spawn, exec, execSync } = require("child_process");
 
 let settings = JSON.parse(fs.readFileSync("settings.json"));
 let auth = JSON.parse(fs.readFileSync("auth.json"));
@@ -22,6 +22,11 @@ let status = 0;
 let frames = 0;
 let originalName;
 let time;
+let percentDone = 0;
+
+let blenderInfo = execSync(blenderLocation + " -v")
+    .toString()
+    .split("\n")[0];
 
 const app = express();
 
@@ -34,11 +39,11 @@ app.get("/", (req, res) => {
     for (let i = 0; i < files.length; i++) {
         links[i] = "/file/" + files[i];
     }
-    res.render("index", { status: status, links: links, cost: cost });
+    res.render("index", { status: status, links: links, cost: cost, blenderInfo: blenderInfo, rate:(1000/msPerMatoshi).toFixed(2) });
 });
 
 app.get("/progress", (req, res) => {
-    res.json({ jobStatus: jobStatus, status: status });
+    res.json({ jobStatus: jobStatus, status: status, percentDone: percentDone, renderName: originalName });
 });
 
 app.get("/reset", (req, res) => {
@@ -46,6 +51,7 @@ app.get("/reset", (req, res) => {
     cost = 0;
     status = 0;
     frames = 0;
+    percentDone = 0;
     res.redirect("/");
 });
 
@@ -96,6 +102,7 @@ app.post("/", (req, res) => {
                         let runtime = new Date(Date.now() - time);
                         let est = (runtime * (endframe - startframe + 1)) / frames;
                         let endtime = new Date(est - runtime);
+                        percentDone = (frames / (endframe - startframe + 1)) * 100;
                         jobStatus =
                             "[" +
                             runtime.getUTCHours().toString().padStart(2, "0") +
@@ -163,7 +170,7 @@ async function wanify(name, fullname, resTime) {
         username: auth.cloudNick,
         password: auth.cloudPass,
     };
-    name = `${parseInt(userId)%10000}-${Date.now().toString()}-${name}`;
+    name = `${parseInt(userId) % 10000}-${Date.now().toString()}-${name}`;
     console.log(name);
     await axios.put("https://cloud.coal.games/remote.php/files/renders/" + name, fs.readFileSync(fullname), {
         auth: authObject,

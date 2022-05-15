@@ -48,7 +48,7 @@ if (fileInput) {
             if (this.readyState === 4 && this.status === 200) {
                 let obj = JSON.parse(this.responseText);
                 remoteConsole.innerHTML = obj.jobStatus;
-                document.title = "b4m [" + obj.percentDone + "%] - " + obj.renderName;
+                document.title = "b4m [" + obj.percentDone.toFixed() + "%] - " + obj.renderName;
                 if (obj.status == 2) {
                     location.reload();
                 }

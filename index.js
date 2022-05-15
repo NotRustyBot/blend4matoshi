@@ -174,6 +174,8 @@ async function wanify(name, fullname, resTime) {
     console.log(name);
     await axios.put("https://cloud.coal.games/remote.php/files/renders/" + name, fs.readFileSync(fullname), {
         auth: authObject,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
     });
     let response = await axios.post("https://cloud.coal.games/ocs/v2.php/apps/files_sharing/api/v1/shares", `path=renders/${name}&shareType=3`, {
         auth: authObject,

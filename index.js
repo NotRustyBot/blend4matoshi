@@ -24,9 +24,9 @@ let originalName;
 let time;
 let percentDone = 0;
 
-let blenderInfo = spawnSync(blenderLocation, ["-v"])
+let blenderInfo = spawnSync(blenderLocation, ["-v"]).output
     .toString()
-    .split("\n")[0];
+    .split("\n")[0].replace(",","");
 
 const app = express();
 

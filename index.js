@@ -3,7 +3,7 @@ const axios = require("axios").default;
 const upload = require("express-fileupload");
 const fs = require("fs");
 const archiver = require("archiver");
-const { spawn, exec, execSync } = require("child_process");
+const { spawn, exec, execSync, spawnSync } = require("child_process");
 
 let settings = JSON.parse(fs.readFileSync("settings.json"));
 let auth = JSON.parse(fs.readFileSync("auth.json"));
@@ -24,7 +24,7 @@ let originalName;
 let time;
 let percentDone = 0;
 
-let blenderInfo = execSync(blenderLocation + " -v")
+let blenderInfo = spawnSync(blenderLocation, ["-v"])
     .toString()
     .split("\n")[0];
 

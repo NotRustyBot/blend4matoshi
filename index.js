@@ -32,6 +32,11 @@ let blenderInfo = spawnSync(blenderLocation, ["-v"]).output
 
 const app = express();
 
+process.on('SIGINT', ()=>{
+    if (status != 1) process.exit();
+    console.log("ignoring SIGINT while rendering");
+});
+
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
@@ -103,7 +108,7 @@ app.post("/", (req, res) => {
             getInfo.on("exit", () => {
                 console.log("starting on frame " + startframe);
                 res.redirect("/");
-                str = spawn(blenderLocation, ["-b", "workdir/file.blend", "-x", "1", "-o", "//render", "-a"]);
+                str = spawn(blenderLocation, ["-b", "workdir/file.blend", "-x", "1", "-o", "//render", "-a"], {detached: true});
                 status = 1;
                 let ct = setInterval(() => {
                     cost++;

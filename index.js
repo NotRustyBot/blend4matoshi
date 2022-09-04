@@ -63,7 +63,7 @@ app.get("/reset", (req, res) => {
 });
 
 app.get("/cancel", (req, res) => {
-    console.log("cancelling a job worth " + cost + " matoshi");
+    console.log("Cancelling job worth " + cost + " matoshi");
     str.removeAllListeners();
     str.kill();
     jobStatus = "Readying...";
@@ -211,7 +211,7 @@ async function wanify(name, fullname, resTime) {
         amount: cost + 1,
     };
     console.log("sending payment request");
-    //axios.post("https://jacekkocek.coal.games/matoshi/payment", result).then((res) => console.log(res.data));
+    axios.post("https://jacekkocek.coal.games/matoshi/payment", result).then((res) => console.log(res.data));
 }
 
 function currentFileName() {

@@ -5,6 +5,8 @@ const fs = require("fs");
 const archiver = require("archiver");
 const { spawn, exec, execSync, spawnSync } = require("child_process");
 
+let str;
+
 let settings = JSON.parse(fs.readFileSync("settings.json"));
 let auth = JSON.parse(fs.readFileSync("auth.json"));
 
@@ -55,6 +57,18 @@ app.get("/reset", (req, res) => {
     res.redirect("/");
 });
 
+app.get("/cancel", (req, res) => {
+    console.log("cancelling a job worth " + cost + " matoshi");
+    str.removeAllListeners();
+    str.kill();
+    jobStatus = "Readying...";
+    cost = 0;
+    status = 0;
+    frames = 0;
+    percentDone = 0;
+    res.redirect("/");
+});
+
 app.get("/file/:file", (req, res) => {
     res.sendFile(__dirname + "/workdir/" + req.params.file, { status: status });
 });
@@ -82,6 +96,7 @@ app.post("/", (req, res) => {
             let endframe = 0;
             getInfo.stdout.on("data", (data) => {
                 let line = data.toString();
+                console.log(line);
                 startframe = line.split("|")[0].trim();
                 endframe = line.split("|")[1].trim();
             });
@@ -191,7 +206,7 @@ async function wanify(name, fullname, resTime) {
         amount: cost + 1,
     };
     console.log("sending payment request");
-    axios.post("https://jacekkocek.coal.games/matoshi/payment", result).then((res) => console.log(res.data));
+    //axios.post("https://jacekkocek.coal.games/matoshi/payment", result).then((res) => console.log(res.data));
 }
 
 function currentFileName() {

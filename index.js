@@ -32,6 +32,11 @@ let blenderInfo = spawnSync(blenderLocation, ["-v"]).output
 
 const app = express();
 
+process.on('SIGINT', ()=>{
+    if (status != 1) process.exit();
+    console.log("ignoring SIGINT while rendering");
+});
+
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
@@ -58,7 +63,7 @@ app.get("/reset", (req, res) => {
 });
 
 app.get("/cancel", (req, res) => {
-    console.log("cancelling a job worth " + cost + " matoshi");
+    console.log("Cancelling job worth " + cost + " matoshi");
     str.removeAllListeners();
     str.kill();
     jobStatus = "Readying...";
@@ -103,7 +108,7 @@ app.post("/", (req, res) => {
             getInfo.on("exit", () => {
                 console.log("starting on frame " + startframe);
                 res.redirect("/");
-                str = spawn(blenderLocation, ["-b", "workdir/file.blend", "-x", "1", "-o", "//render", "-a"]);
+                str = spawn(blenderLocation, ["-b", "workdir/file.blend", "-x", "1", "-o", "//render", "-a"], {detached: true});
                 status = 1;
                 let ct = setInterval(() => {
                     cost++;
@@ -206,7 +211,7 @@ async function wanify(name, fullname, resTime) {
         amount: cost + 1,
     };
     console.log("sending payment request");
-    //axios.post("https://jacekkocek.coal.games/matoshi/payment", result).then((res) => console.log(res.data));
+    axios.post("https://jacekkocek.coal.games/matoshi/payment", result).then((res) => console.log(res.data));
 }
 
 function currentFileName() {

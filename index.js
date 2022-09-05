@@ -6,6 +6,8 @@ var AdmZip = require("adm-zip");
 const archiver = require("archiver");
 const { spawn, exec, execSync, spawnSync } = require("child_process");
 
+if(!fs.existsSync("workdir")) fs.mkdirsSync("workdir");
+
 const version = JSON.parse(fs.readFileSync("package.json")).version;
 let settings = JSON.parse(fs.readFileSync("settings.json"));
 

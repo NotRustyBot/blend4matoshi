@@ -6,7 +6,14 @@ var AdmZip = require("adm-zip");
 const archiver = require("archiver");
 const { spawn, exec, execSync, spawnSync } = require("child_process");
 
-if(!fs.existsSync("workdir")) fs.mkdirsSync("workdir");
+if (!fs.existsSync("workdir")) fs.mkdirsSync("workdir");
+
+if (!fs.existsSync("settings.json") || !fs.existsSync("auth.json")) {
+    console.log("settings.json and auth.json required.");
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.on("data", process.exit.bind(process, 0));
+}
 
 const version = JSON.parse(fs.readFileSync("package.json")).version;
 let settings = JSON.parse(fs.readFileSync("settings.json"));
@@ -37,15 +44,18 @@ if (!settings.noUpdate) {
                                 var zip = new AdmZip("temp.zip");
                                 zip.extractAllTo("", true);
                                 for (const obj of fs.readdirSync("blend4matoshi-master")) {
-                                    if(fs.lstatSync("blend4matoshi-master/" + obj).isDirectory() ){
+                                    if (fs.lstatSync("blend4matoshi-master/" + obj).isDirectory()) {
                                         fs.copySync("blend4matoshi-master/" + obj, obj);
-                                        fs.rmdirSync("blend4matoshi-master/" + obj, { recursive: true });
-                                    }else{
+                                        fs.rmdirSync("blend4matoshi-master/" + obj, {
+                                            recursive: true,
+                                        });
+                                    } else {
                                         fs.renameSync("blend4matoshi-master/" + obj, obj);
                                     }
                                 }
+                                fs.rmdirSync("blend4matoshi-master");
+                                fs.unlinkSync("temp.zip");
                             }
-                            spawnSync("npm", ["i"]);
                         });
                     });
             }
@@ -79,7 +89,7 @@ let blenderInfo = spawnSync(blenderLocation, ["-v"])
 
 const app = express();
 
-process.on('SIGINT', ()=>{
+process.on("SIGINT", () => {
     if (status != 1) process.exit();
     console.log("ignoring SIGINT while rendering");
 });

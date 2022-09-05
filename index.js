@@ -2,12 +2,52 @@ const express = require("express");
 const axios = require("axios").default;
 const upload = require("express-fileupload");
 const fs = require("fs");
+var AdmZip = require("adm-zip");
 const archiver = require("archiver");
 const { spawn, exec, execSync, spawnSync } = require("child_process");
 
+const version = JSON.parse(fs.readFileSync("package.json")).version;
+let settings = JSON.parse(fs.readFileSync("settings.json"));
+
+if (!settings.noUpdate) {
+    axios
+        .get("https://raw.githubusercontent.com/NotRustyBot/blend4matoshi/master/package.json")
+        .then((res) => {
+            let newVersion = JSON.parse(res.data).version;
+            if (newVersion != version) {
+                console.log(`v${newVersion} is now available.`);
+                const writer = fs.createWriteStream("temp.zip");
+                axios
+                    .get(
+                        "https://github.com/NotRustyBot/blend4matoshi/archive/refs/heads/master.zip",
+                        { responseType: "stream" }
+                    )
+                    .then((res) => {
+                        res.data.pipe(writer);
+                        let error = null;
+                        writer.on("error", (err) => {
+                            error = err;
+                            writer.close();
+                            reject(err);
+                        });
+                        writer.on("close", () => {
+                            if (!error) {
+                                var zip = new AdmZip("temp.zip");
+                                zip.extractAllTo("", true);
+                                for (const obj of fs.readdirSync("blend4matoshi-master")) {
+                                    fs.renameSync("blend4matoshi-master/" + obj, obj);
+                                }
+                            }
+                            fs.unlinkSync("blend4matoshi-master");
+                            spawnSync("npm", ["i"]);
+                        });
+                    });
+            }
+        });
+}
+
 let str;
 
-let settings = JSON.parse(fs.readFileSync("settings.json"));
 let auth = JSON.parse(fs.readFileSync("auth.json"));
 
 let userId = settings.userId;
@@ -26,13 +66,14 @@ let originalName;
 let time;
 let percentDone = 0;
 
-let blenderInfo = spawnSync(blenderLocation, ["-v"]).output
-    .toString()
-    .split("\n")[0].replace(",","");
+let blenderInfo = spawnSync(blenderLocation, ["-v"])
+    .output.toString()
+    .split("\n")[0]
+    .replace(",", "");
 
 const app = express();
 
-process.on('SIGINT', ()=>{
+process.on("SIGINT", () => {
     if (status != 1) process.exit();
     console.log("ignoring SIGINT while rendering");
 });
@@ -46,11 +87,24 @@ app.get("/", (req, res) => {
     for (let i = 0; i < files.length; i++) {
         links[i] = "/file/" + files[i];
     }
-    res.render("index", { status: status, links: links, cost: cost, blenderInfo: blenderInfo, rate:(1000/msPerMatoshi).toFixed(2) });
+    res.render("index", {
+        status: status,
+        links: links,
+        cost: cost,
+        version: version,
+        blenderInfo: blenderInfo,
+        rate: (1000 / msPerMatoshi).toFixed(2),
+    });
 });
 
 app.get("/progress", (req, res) => {
-    res.json({ jobStatus: jobStatus, status: status, percentDone: percentDone, renderName: originalName });
+    res.json({
+        jobStatus: jobStatus,
+        status: status,
+        version: version,
+        percentDone: percentDone,
+        renderName: originalName,
+    });
 });
 
 app.get("/reset", (req, res) => {
@@ -108,7 +162,11 @@ app.post("/", (req, res) => {
             getInfo.on("exit", () => {
                 console.log("starting on frame " + startframe);
                 res.redirect("/");
-                str = spawn(blenderLocation, ["-b", "workdir/file.blend", "-x", "1", "-o", "//render", "-a"], {detached: true});
+                str = spawn(
+                    blenderLocation,
+                    ["-b", "workdir/file.blend", "-x", "1", "-o", "//render", "-a"],
+                    { detached: true }
+                );
                 status = 1;
                 let ct = setInterval(() => {
                     cost++;
@@ -192,17 +250,25 @@ async function wanify(name, fullname, resTime) {
     };
     name = `${parseInt(userId) % 10000}-${Date.now().toString()}-${name}`;
     console.log(name);
-    await axios.put("https://cloud.coal.games/remote.php/files/renders/" + name, fs.readFileSync(fullname), {
-        auth: authObject,
-        maxBodyLength: Infinity,
-        maxContentLength: Infinity
-    });
-    let response = await axios.post("https://cloud.coal.games/ocs/v2.php/apps/files_sharing/api/v1/shares", `path=renders/${name}&shareType=3`, {
-        auth: authObject,
-        headers: {
-            "OCS-APIRequest": "true",
-        },
-    });
+    await axios.put(
+        "https://cloud.coal.games/remote.php/files/renders/" + name,
+        fs.readFileSync(fullname),
+        {
+            auth: authObject,
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity,
+        }
+    );
+    let response = await axios.post(
+        "https://cloud.coal.games/ocs/v2.php/apps/files_sharing/api/v1/shares",
+        `path=renders/${name}&shareType=3`,
+        {
+            auth: authObject,
+            headers: {
+                "OCS-APIRequest": "true",
+            },
+        }
+    );
 
     const result = {
         description: `b4m render finished!\n rendered \`${frames}\` frames of \`${originalName}\` in \`${resTime}\` seconds.\n ${response.data.ocs.data.url}`,
@@ -211,12 +277,16 @@ async function wanify(name, fullname, resTime) {
         amount: cost + 1,
     };
     console.log("sending payment request");
-    axios.post("https://jacekkocek.coal.games/matoshi/payment", result).then((res) => console.log(res.data));
+    axios
+        .post("https://jacekkocek.coal.games/matoshi/payment", result)
+        .then((res) => console.log(res.data));
 }
 
 function currentFileName() {
     let now = new Date();
-    return `${now.getFullYear()} ${now.getMonth() + 1} ${now.getDate()} ${now.getHours()}-${now.getMinutes()}`;
+    return `${now.getFullYear()} ${
+        now.getMonth() + 1
+    } ${now.getDate()} ${now.getHours()}-${now.getMinutes()}`;
 }
 
 app.listen(80);

@@ -3,4 +3,4 @@ workdir/*
 settings.json
 auth.json
 test.js
-node_modules/
+node_modules

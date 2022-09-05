@@ -239,7 +239,7 @@ app.post("/", (req, res) => {
                     } else {
                         let archive = archiver("zip", { zlib: { level: 9 } });
                         archive.directory("workdir", false);
-                        let name = currentFileName() + ".zip";
+                        let name = "workdir/" + currentFileName() + ".zip";
                         let output = fs.createWriteStream(name);
                         archive.pipe(output);
                         output.on("close", () => {

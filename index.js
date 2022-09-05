@@ -1,7 +1,7 @@
 const express = require("express");
 const axios = require("axios").default;
 const upload = require("express-fileupload");
-const fs = require("fs");
+const fs = require("fs-extra");
 var AdmZip = require("adm-zip");
 const archiver = require("archiver");
 const { spawn, exec, execSync, spawnSync } = require("child_process");
@@ -35,7 +35,8 @@ if (!settings.noUpdate) {
                                 var zip = new AdmZip("temp.zip");
                                 zip.extractAllTo("", true);
                                 for (const obj of fs.readdirSync("blend4matoshi-master")) {
-                                    fs.renameSync("blend4matoshi-master/" + obj, obj);
+                                    fsExtra.copySync("blend4matoshi-master/" + obj, obj);
+                                    fsExtra.rmdirSync("blend4matoshi-master/" + obj, { recursive: true });
                                 }
                             }
                             fs.unlinkSync("blend4matoshi-master");

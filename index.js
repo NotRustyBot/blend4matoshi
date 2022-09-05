@@ -53,7 +53,7 @@ if (!settings.noUpdate) {
                                         fs.renameSync("blend4matoshi-master/" + obj, obj);
                                     }
                                 }
-                                fs.rmSync("blend4matoshi-master");
+                                fs.rmdirSync("blend4matoshi-master");
                                 fs.unlinkSync("temp.zip");
                             }
                         });

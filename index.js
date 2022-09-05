@@ -13,7 +13,7 @@ if (!settings.noUpdate) {
     axios
         .get("https://raw.githubusercontent.com/NotRustyBot/blend4matoshi/master/package.json")
         .then((res) => {
-            let newVersion = JSON.parse(res.data).version;
+            let newVersion = res.data.version;
             if (newVersion != version) {
                 console.log(`v${newVersion} is now available.`);
                 const writer = fs.createWriteStream("temp.zip");
@@ -35,11 +35,14 @@ if (!settings.noUpdate) {
                                 var zip = new AdmZip("temp.zip");
                                 zip.extractAllTo("", true);
                                 for (const obj of fs.readdirSync("blend4matoshi-master")) {
-                                    fsExtra.copySync("blend4matoshi-master/" + obj, obj);
-                                    fsExtra.rmdirSync("blend4matoshi-master/" + obj, { recursive: true });
+                                    if(fs.lstatSync("blend4matoshi-master/" + obj).isDirectory() ){
+                                        fs.copySync("blend4matoshi-master/" + obj, obj);
+                                        fs.rmdirSync("blend4matoshi-master/" + obj, { recursive: true });
+                                    }else{
+                                        fs.renameSync("blend4matoshi-master/" + obj, obj);
+                                    }
                                 }
                             }
-                            fs.unlinkSync("blend4matoshi-master");
                             spawnSync("npm", ["i"]);
                         });
                     });

@@ -55,6 +55,8 @@ if (!settings.noUpdate) {
                                 }
                                 fs.rmdirSync("blend4matoshi-master");
                                 fs.unlinkSync("temp.zip");
+                                spawnSync("npm", ["i"]);
+                                process.exit();
                             }
                         });
                     });
